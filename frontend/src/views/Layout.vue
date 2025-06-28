@@ -159,15 +159,21 @@ const getImageUrl = (imagePath) => {
 <style scoped>
 .layout-container {
   height: 100vh;
+  display: flex;
 }
 
 .sidebar {
+  width: 200px;
   background-color: #545c64;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
+  overflow: hidden; /* 关键点1：防止外部滚动 */
 }
 
 .logo {
   height: 60px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,9 +181,25 @@ const getImageUrl = (imagePath) => {
   border-bottom: 1px solid #434a50;
 }
 
-.logo h3 {
-  margin: 0;
-  font-size: 18px;
+.el-menu {
+  flex: 1;
+  overflow-y: auto;
+  border-right: none !important;
+  background-color: inherit !important; /* 关键点2：继承背景色 */
+}
+
+/* 滚动条样式定制 */
+.el-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.el-menu::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.el-menu::-webkit-scrollbar-track {
+  background-color: #545c64; /* 关键点3：轨道颜色与侧边栏一致 */
 }
 
 .header {
@@ -217,4 +239,4 @@ const getImageUrl = (imagePath) => {
   background-color: #f5f5f5;
   padding: 20px;
 }
-</style> 
+</style>
