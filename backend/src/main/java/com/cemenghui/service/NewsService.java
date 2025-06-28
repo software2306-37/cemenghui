@@ -1,4 +1,4 @@
-package com.cemenghui.service.impl;
+package com.cemenghui.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
