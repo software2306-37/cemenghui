@@ -13,18 +13,39 @@ import java.util.List;
 
 @Service
 public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> implements TenantService {
+
     @Override
     public Page<Tenant> pageTenants(int current, int size, String keyword) {
-        return null;
+        Page<Tenant> page = new Page<>(current, size);
+        QueryWrapper<Tenant> queryWrapper = new QueryWrapper<>();
+
+        if (StringUtils.hasText(keyword)) {
+            queryWrapper.and(wrapper ->
+                wrapper.like("tenant_code", keyword)
+                    .or().like("tenant_name", keyword)
+                    .or().like("contact_person", keyword)
+                    .or().like("contact_phone", keyword)
+            );
+        }
+
+        queryWrapper.orderByDesc("create_time");
+
+        return this.page(page, queryWrapper);
     }
 
     @Override
     public boolean existsByTenantCode(String tenantCode) {
-        return false;
+        QueryWrapper<Tenant> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("tenant_code", tenantCode);
+        return this.count(queryWrapper) > 0;
     }
 
     @Override
     public List<Tenant> listActiveTenants() {
-        return null;
+        QueryWrapper<Tenant> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("status", 1)
+                   .orderBy(true, true, "tenant_name");
+
+        return this.list(queryWrapper);
     }
 }
