@@ -467,4 +467,77 @@ const getImageUrl = (imagePath) => {
   margin-bottom: 15px;
   line-height: 1.6;
 }
-</style>
+
+.empty-data {
+  padding: 40px 0;
+}
+
+.video-upload-section {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  padding: 15px;
+}
+
+.video-list {
+  margin-bottom: 15px;
+}
+
+.video-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 15px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  background-color: #f9f9f9;
+  gap: 15px;
+}
+
+.video-preview {
+  flex-shrink: 0;
+}
+
+.video-info {
+  flex: 1;
+}
+
+.video-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.video-meta {
+  font-size: 12px;
+  color: #909399;
+}
+
+.video-meta span {
+  margin-right: 15px;
+}
+
+.video-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.video-description {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.preview-info {
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.preview-item {
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+</style> 
