@@ -89,6 +89,7 @@
 	import { ref, reactive, onMounted } from 'vue'
 	import { ElMessage } from 'element-plus'
 	import request from '../utils/request'
+	import router from "@/router";
 	
 	const user = ref({})
 	const updating = ref(false)
@@ -140,7 +141,7 @@
 	const updateProfile = async () => {
 	  updating.value = true
 	  try {
-	    await request.put('/user/profile', profileForm)
+	     await request.post('/user/profile', profileForm)
 	    ElMessage.success('更新成功')
 	    // 重新获取用户信息以确保数据同步
 	    const userRes = await request.get('/user/current')
@@ -182,6 +183,9 @@
 	      newPassword: '',
 	      confirmPassword: ''
 	    })
+		await request.post('/user/logout')
+		    localStorage.removeItem('user')
+		    router.push('/login')
 	  } catch (error) {
 	    console.error('修改密码失败:', error)
 	  } finally {
