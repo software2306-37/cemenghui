@@ -293,26 +293,56 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import request from '../utils/request'
 
 const courseList = ref([])
 const loading = ref(false)
 const showAddDialog = ref(false)
+const showAuditDialog = ref(false)
 const showViewDialog = ref(false)
+const showVideoDialog = ref(false)
+const showVideoPreviewDialog = ref(false)
 const editingCourse = ref(null)
+const auditingCourse = ref(null)
 const viewingCourse = ref(null)
+const previewingVideo = ref(null)
 const searchKeyword = ref('')
+const statusFilter = ref('')
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const uploadUrl = ref('/api/file/upload')
+const auditStatus = ref(1)
+const selectedCourses = ref([])
+const courseVideos = ref([])
+const editingVideoIndex = ref(-1)
+
+const user = computed(() => {
+  const userStr = localStorage.getItem('user')
+  return userStr ? JSON.parse(userStr) : {}
+})
 
 const courseForm = reactive({
   title: '',
   description: '',
-  coverImage: ''
+  coverImage: '',
+  videoUrl: '',
+  sortOrder: 0
 })
+
+const videoForm = reactive({
+  videoTitle: '',
+  videoUrl: '',
+  videoDescription: '',
+  videoDuration: 0,
+  sortOrder: 1,
+  isFree: 0,
+  status: 1
+})
+
+const courseFormRef = ref()
 
 onMounted(() => {
   loadCourses()
@@ -321,34 +351,19 @@ onMounted(() => {
 const loadCourses = async () => {
   loading.value = true
   try {
-    // 这里应该是实际的API调用
-    const mockData = {
-      data: {
-        records: [
-          {
-            id: 1,
-            title: 'Vue3入门教程',
-            description: '从零开始学习Vue3框架',
-            coverImage: '/images/course1.jpg',
-            author: '张老师',
-            status: 1,
-            createTime: '2023-05-15 10:00:00'
-          },
-          {
-            id: 2,
-            title: 'React高级课程',
-            description: '深入理解React原理',
-            coverImage: '/images/course2.jpg',
-            author: '李老师',
-            status: 0,
-            createTime: '2023-05-10 14:30:00'
-          }
-        ],
-        total: 2
-      }
+    const params = {
+      current: currentPage.value,
+      size: pageSize.value,
+      keyword: searchKeyword.value
     }
-    courseList.value = mockData.data.records
-    total.value = mockData.data.total
+    
+    if (statusFilter.value !== '') {
+      params.status = statusFilter.value
+    }
+    
+    const res = await request.get('/course/page', { params })
+    courseList.value = res.data.records || []
+    total.value = res.data.total || 0
   } catch (error) {
     console.error('加载课程列表失败:', error)
     courseList.value = []
@@ -357,18 +372,31 @@ const loadCourses = async () => {
   }
 }
 
+const getStatusType = (status) => {
+  const types = { 0: 'warning', 1: 'success', 2: 'danger' }
+  return types[status] || 'info'
+}
+
+const getStatusText = (status) => {
+  const texts = { 0: '待审核', 1: '已发布', 2: '已拒绝' }
+  return texts[status] || '未知'
+}
+
 const viewCourse = (course) => {
   viewingCourse.value = course
   showViewDialog.value = true
 }
 
-const editCourse = (course) => {
+const editCourse = async (course) => {
   editingCourse.value = course
   Object.assign(courseForm, {
     title: course.title,
     description: course.description,
-    coverImage: course.coverImage
+    coverImage: course.coverImage,
+    videoUrl: course.videoUrl,
+    sortOrder: course.sortOrder
   })
+  await loadCourseVideos(course.id)
   showAddDialog.value = true
 }
 
@@ -377,27 +405,118 @@ const saveCourse = async () => {
     ElMessage.error('请输入课程名称')
     return
   }
+  if (!courseForm.description) {
+    ElMessage.error('请输入课程描述')
+    return
+  }
   
   try {
     if (editingCourse.value) {
-      // 更新API调用
+      // 更新课程基本信息
+      await request.put(`/course/${editingCourse.value.id}`, courseForm)
+      
+      // 保存视频数据
+      if (courseVideos.value.length > 0) {
+        console.log('需要保存的视频数量:', courseVideos.value.length)
+        let videoSaveCount = 0
+        let videoFailCount = 0
+        
+        for (const video of courseVideos.value) {
+          const videoData = {
+            title: video.videoTitle || video.title,
+            videoUrl: video.videoUrl,
+            description: video.videoDescription || video.description,
+            duration: video.videoDuration || video.duration || 0,
+            sortOrder: video.sortOrder || 1,
+            isFree: video.isFree !== undefined ? video.isFree : 0,
+            status: video.status !== undefined ? video.status : 1
+          }
+          
+          console.log('保存视频数据:', videoData)
+          
+          try {
+            if (video.id && !String(video.id).startsWith('temp_')) {
+              // 更新现有视频
+              await request.put(`/course/${editingCourse.value.id}/videos/${video.id}`, videoData)
+              console.log('视频更新成功:', video.id)
+            } else {
+              // 添加新视频
+              const videoRes = await request.post(`/course/${editingCourse.value.id}/videos`, videoData)
+              console.log('视频添加成功:', videoRes)
+            }
+            videoSaveCount++
+          } catch (videoError) {
+            console.error('保存视频失败:', videoError)
+            videoFailCount++
+            ElMessage.error(`保存视频 "${videoData.title}" 失败`)
+          }
+        }
+        
+        if (videoFailCount > 0) {
+          ElMessage.warning(`${videoSaveCount} 个视频保存成功，${videoFailCount} 个视频保存失败`)
+        }
+      }
       ElMessage.success('更新成功')
     } else {
-      // 创建API调用
-      ElMessage.success('添加成功')
+      // 创建新课程
+      const courseRes = await request.post('/course', courseForm)
+      const newCourseId = courseRes.data.id
+      
+      console.log('创建课程成功，课程ID:', newCourseId)
+      console.log('需要保存的视频数量:', courseVideos.value.length)
+      
+      // 保存视频数据
+      if (courseVideos.value.length > 0 && newCourseId) {
+        let videoSaveCount = 0
+        let videoFailCount = 0
+        
+        for (const video of courseVideos.value) {
+          const videoData = {
+            title: video.videoTitle || video.title,
+            videoUrl: video.videoUrl,
+            description: video.videoDescription || video.description,
+            duration: video.videoDuration || video.duration || 0,
+            sortOrder: video.sortOrder || 1,
+            isFree: video.isFree !== undefined ? video.isFree : 0,
+            status: video.status !== undefined ? video.status : 1
+          }
+          
+          console.log('新课程保存视频数据:', videoData)
+          console.log('保存视频到课程ID:', newCourseId)
+          
+          try {
+            const videoRes = await request.post(`/course/${newCourseId}/videos`, videoData)
+            console.log('视频保存成功:', videoRes)
+            videoSaveCount++
+          } catch (videoError) {
+            console.error('保存视频失败:', videoError)
+            videoFailCount++
+            ElMessage.error(`保存视频 "${videoData.title}" 失败`)
+          }
+        }
+        
+        if (videoFailCount > 0) {
+          ElMessage.warning(`课程创建成功，${videoSaveCount} 个视频保存成功，${videoFailCount} 个视频保存失败`)
+        } else if (videoSaveCount > 0) {
+          ElMessage.success(`课程和 ${videoSaveCount} 个视频创建成功`)
+        }
+      } else if (courseVideos.value.length === 0) {
+        ElMessage.success('课程创建成功')
+      }
     }
     showAddDialog.value = false
     resetForm()
     loadCourses()
   } catch (error) {
     console.error('保存课程失败:', error)
+    ElMessage.error('保存课程失败')
   }
 }
 
 const deleteCourse = async (course) => {
   try {
     await ElMessageBox.confirm('确定要删除这个课程吗？', '提示')
-    // 删除API调用
+    await request.delete(`/course/${course.id}`)
     ElMessage.success('删除成功')
     loadCourses()
   } catch (error) {
@@ -412,8 +531,191 @@ const resetForm = () => {
   Object.assign(courseForm, {
     title: '',
     description: '',
-    coverImage: ''
+    coverImage: '',
+    videoUrl: '',
+    sortOrder: 0
   })
+  courseVideos.value = []
+}
+
+const resetVideoForm = () => {
+  editingVideoIndex.value = -1
+  Object.assign(videoForm, {
+    videoTitle: '',
+    videoUrl: '',
+    videoDescription: '',
+    videoDuration: 0,
+    sortOrder: courseVideos.value.length + 1,
+    isFree: 0,
+    status: 1
+  })
+}
+
+// 视频管理相关方法
+const loadCourseVideos = async (courseId) => {
+  if (!courseId) {
+    courseVideos.value = []
+    return
+  }
+  
+  try {
+    // 添加admin=true参数，获取所有视频（管理端）
+    const res = await request.get(`/course/${courseId}/videos?admin=true`)
+    console.log('加载课程视频列表:', res.data)
+    courseVideos.value = res.data || []
+  } catch (error) {
+    console.error('加载课程视频失败:', error)
+    courseVideos.value = []
+  }
+}
+
+const editVideo = (video, index) => {
+  editingVideoIndex.value = index
+  Object.assign(videoForm, {
+    videoTitle: video.videoTitle || video.title,
+    videoUrl: video.videoUrl,
+    videoDescription: video.videoDescription || video.description,
+    videoDuration: video.videoDuration || video.duration || 0,
+    sortOrder: video.sortOrder || 1,
+    isFree: (video.isFree !== undefined ? video.isFree : 0),
+    status: video.status !== undefined ? video.status : 1
+  })
+  showVideoDialog.value = true
+}
+
+const removeVideo = async (index) => {
+  const video = courseVideos.value[index]
+  
+  try {
+    await ElMessageBox.confirm('确定要删除这个视频吗？', '提示')
+    
+    // 如果是已存在的视频，需要调用后端API删除
+    if (video.id && !String(video.id).startsWith('temp_') && editingCourse.value) {
+      await request.delete(`/course/${editingCourse.value.id}/videos/${video.id}`)
+      ElMessage.success('删除视频成功')
+    }
+    
+    // 从前端数组中删除
+    courseVideos.value.splice(index, 1)
+    
+    // 如果是新添加的视频，只需从数组中删除即可
+    if (!video.id || String(video.id).startsWith('temp_')) {
+      ElMessage.success('删除视频成功')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除视频失败:', error)
+      ElMessage.error('删除视频失败')
+    }
+  }
+}
+
+const previewVideo = (video) => {
+  previewingVideo.value = video
+  showVideoPreviewDialog.value = true
+}
+
+const clearVideoFile = () => {
+  videoForm.videoUrl = ''
+  videoForm.videoDuration = 0
+}
+
+const getVideoUrl = (videoPath) => {
+  if (!videoPath) return ''
+  if (videoPath.startsWith('http://') || videoPath.startsWith('https://')) {
+    return videoPath
+  }
+  return `http://localhost:8080/api${videoPath}`
+}
+
+const saveVideo = () => {
+  if (!videoForm.videoTitle) {
+    ElMessage.error('请输入视频标题')
+    return
+  }
+  if (!videoForm.videoUrl) {
+    ElMessage.error('请上传视频文件')
+    return
+  }
+  
+  const videoData = {
+    videoTitle: videoForm.videoTitle,
+    videoUrl: videoForm.videoUrl,
+    videoDescription: videoForm.videoDescription,
+    videoDuration: videoForm.videoDuration,
+    sortOrder: videoForm.sortOrder,
+    isFree: videoForm.isFree,
+    status: videoForm.status,
+    formattedDuration: formatDuration(videoForm.videoDuration)
+  }
+  
+  if (editingVideoIndex.value >= 0) {
+    // 编辑现有视频
+    courseVideos.value[editingVideoIndex.value] = { ...courseVideos.value[editingVideoIndex.value], ...videoData }
+  } else {
+    // 添加新视频，使用临时ID
+    courseVideos.value.push({ id: 'temp_' + Date.now(), ...videoData })
+  }
+  
+  showVideoDialog.value = false
+  resetVideoForm()
+  ElMessage.success(editingVideoIndex.value >= 0 ? '更新视频成功' : '添加视频成功')
+}
+
+const handleVideoFileSuccess = (response, file) => {
+  if (response.code === 200) {
+    videoForm.videoUrl = response.data
+    // 自动检测视频时长
+    detectVideoDuration(response.data, file.raw)
+    ElMessage.success('视频上传成功')
+  } else {
+    ElMessage.error('视频上传失败')
+  }
+}
+
+const detectVideoDuration = (videoUrl, file) => {
+  // 创建一个临时的video元素来检测时长
+  const video = document.createElement('video')
+  video.preload = 'metadata'
+  
+  video.onloadedmetadata = () => {
+    if (video.duration && !isNaN(video.duration)) {
+      videoForm.videoDuration = Math.round(video.duration)
+      console.log('检测到视频时长:', videoForm.videoDuration, '秒')
+    }
+    // 清理资源
+    video.remove()
+  }
+  
+  video.onerror = () => {
+    console.warn('无法检测视频时长')
+    video.remove()
+  }
+  
+  // 如果有文件对象，直接使用
+  if (file) {
+    const url = URL.createObjectURL(file)
+    video.src = url
+    video.onloadedmetadata = () => {
+      if (video.duration && !isNaN(video.duration)) {
+        videoForm.videoDuration = Math.round(video.duration)
+        console.log('检测到视频时长:', videoForm.videoDuration, '秒')
+      }
+      URL.revokeObjectURL(url)
+      video.remove()
+    }
+  } else {
+    // 使用服务器URL
+    const fullUrl = `http://localhost:8080/api${videoUrl}`
+    video.src = fullUrl
+  }
+}
+
+const formatDuration = (seconds) => {
+  if (!seconds || seconds <= 0) return '00:00'
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
 const handleCoverSuccess = (response) => {
@@ -422,6 +724,50 @@ const handleCoverSuccess = (response) => {
     ElMessage.success('封面上传成功')
   } else {
     ElMessage.error('封面上传失败')
+  }
+}
+
+const handleVideoSuccess = (response, file) => {
+  if (response.code === 200) {
+    courseForm.videoUrl = response.data
+    // 自动检测视频时长
+    detectCourseVideoDuration(response.data, file.raw)
+    ElMessage.success('视频上传成功')
+  } else {
+    ElMessage.error('视频上传失败')
+  }
+}
+
+const detectCourseVideoDuration = (videoUrl, file) => {
+  // 为课程视频创建时长检测（与视频列表的检测类似）
+  const video = document.createElement('video')
+  video.preload = 'metadata'
+  
+  video.onloadedmetadata = () => {
+    if (video.duration && !isNaN(video.duration)) {
+      console.log('检测到课程视频时长:', Math.round(video.duration), '秒')
+    }
+    video.remove()
+  }
+  
+  video.onerror = () => {
+    console.warn('无法检测课程视频时长')
+    video.remove()
+  }
+  
+  if (file) {
+    const url = URL.createObjectURL(file)
+    video.src = url
+    video.onloadedmetadata = () => {
+      if (video.duration && !isNaN(video.duration)) {
+        console.log('检测到课程视频时长:', Math.round(video.duration), '秒')
+      }
+      URL.revokeObjectURL(url)
+      video.remove()
+    }
+  } else {
+    const fullUrl = `http://localhost:8080/api${videoUrl}`
+    video.src = fullUrl
   }
 }
 
@@ -440,10 +786,128 @@ const beforeImageUpload = (file) => {
   return true
 }
 
+const beforeVideoUpload = (file) => {
+  // 支持的视频格式
+  const allowedTypes = [
+    'video/mp4',
+    'video/avi',
+    'video/mov',
+    'video/wmv',
+    'video/flv',
+    'video/webm',
+    'video/mkv',
+    'video/3gp',
+    'video/m4v'
+  ]
+  
+  const isVideo = allowedTypes.includes(file.type) || file.type.indexOf('video/') === 0
+  const isLt100M = file.size / 1024 / 1024 < 100
+
+  if (!isVideo) {
+    ElMessage.error('只能上传视频文件！支持格式：MP4、AVI、MOV、WMV、FLV、WebM、MKV、3GP、M4V')
+    return false
+  }
+  if (!isLt100M) {
+    ElMessage.error('视频大小不能超过 100MB!')
+    return false
+  }
+  return true
+}
+
+const canAudit = (course) => {
+  return user.value.role === 'ADMIN' && course.status === 0
+}
+
+const auditCourse = (course) => {
+  auditingCourse.value = course
+  auditStatus.value = 1
+  showAuditDialog.value = true
+}
+
+const submitAudit = async () => {
+  try {
+    await request.post(`/course/${auditingCourse.value.id}/audit`, {
+      status: auditStatus.value
+    })
+    ElMessage.success('审核成功')
+    showAuditDialog.value = false
+    loadCourses()
+  } catch (error) {
+    console.error('审核失败:', error)
+  }
+}
+
 const getImageUrl = (imagePath) => {
   if (!imagePath) return ''
   if (imagePath.startsWith('http')) return imagePath
   return `http://localhost:8080/api${imagePath}`
+}
+
+const exportCourses = async () => {
+  try {
+    const res = await request.get('/course/export', {
+      params: {
+        keyword: searchKeyword.value
+      },
+      responseType: 'blob'
+    })
+    
+    const blob = new Blob([res], { type: 'text/csv;charset=utf-8' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `courses_${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+    
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败')
+  }
+}
+
+const handleSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+  loadCourses()
+}
+
+const handleSelectionChange = (selected) => {
+  selectedCourses.value = selected.map(course => course.id)
+}
+
+const batchAudit = async () => {
+  try {
+    await request.post('/course/batch/audit', {
+      ids: selectedCourses.value
+    })
+    ElMessage.success('批量审核成功')
+    selectedCourses.value = []
+    loadCourses()
+  } catch (error) {
+    console.error('批量审核失败:', error)
+  }
+}
+
+const batchDelete = async () => {
+  try {
+    await ElMessageBox.confirm('确定要删除选中的课程吗？', '提示')
+    await request.delete('/course/batch', {
+      data: {
+        ids: selectedCourses.value
+      }
+    })
+    ElMessage.success('批量删除成功')
+    selectedCourses.value = []
+    loadCourses()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+    }
+  }
 }
 </script>
 
