@@ -24,13 +24,20 @@ spring:
 
 # MyBatis Plus配置
 mybatis-plus:
+
   configuration:
+    variables:
+      current_schema: cemenghui_now  # 金仓专用变量
     map-underscore-to-camel-case: true
     auto-mapping-behavior: full
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 金仓需要配置标识符引号
+    identifier-quote: "\""
   mapper-locations: classpath*:mapper/**/*Mapper.xml
   global-config:
     db-config:
+      db-type: kingbasees  # 关键：指定金仓方言
+      schema: cemenghui_now  # 全局schema设置
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
