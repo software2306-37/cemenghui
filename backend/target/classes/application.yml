@@ -33,6 +33,19 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
 
+#dify配置
+dify:
+  api:
+    url: http://localhost
+    key: app-K2Jld6psvI1pOfamYhdklwFj
+
+#api配置
+api:
+  base-url: http://localhost
+  auth:
+    token: app-K2Jld6psvI1pOfamYhdklwFj
+
+
 # 文件上传配置
 file:
   upload:
