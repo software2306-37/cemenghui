@@ -15,7 +15,9 @@
 	              :action="uploadUrl"
 	              :show-file-list="false"
 	              :on-success="handleAvatarSuccess"
+				  :on-error="handleAvatarError"
 	              :before-upload="beforeAvatarUpload"
+				  :headers="uploadHeaders"
 	            >
 	              <el-button size="small" type="text">更换头像</el-button>
 	            </el-upload>
@@ -86,7 +88,7 @@
 </template>
 
 <script setup>
-	import { ref, reactive, onMounted } from 'vue'
+	import { ref, reactive, onMounted, computed } from 'vue'
 	import { ElMessage } from 'element-plus'
 	import request from '../utils/request'
 	import router from "@/router";
@@ -94,7 +96,18 @@
 	const user = ref({})
 	const updating = ref(false)
 	const changingPassword = ref(false)
-	const uploadUrl = ref('/api/file/upload')
+	const uploadUrl = ref('http://localhost:8080/api/file/upload')
+	
+	const uploadHeaders = computed(() => {
+	  const userStr = localStorage.getItem('user')
+	  if (userStr) {
+	    const userData = JSON.parse(userStr)
+	    return {
+	      'X-Requested-With': 'XMLHttpRequest'
+	    }
+	  }
+	  return {}
+	})
 	
 	const profileForm = reactive({
 	  username: '',
@@ -159,6 +172,11 @@
 	  }
 	}
 	
+	const handleAvatarError = (error, file) => {
+	  console.error('头像上传失败:', error)
+	  ElMessage.error('头像上传失败，请重试')
+	}
+	
 	const changePassword = async () => {
 	  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
 	    ElMessage.error('两次输入的密码不一致')
@@ -172,7 +190,7 @@
 	
 	  changingPassword.value = true
 	  try {
-	    await request.post('/user/changePassword', {
+	    await request.post('/user/change-password', {
 	      oldPassword: passwordForm.oldPassword,
 	      newPassword: passwordForm.newPassword
 	    })
@@ -193,7 +211,7 @@
 	  }
 	}
 	
-	const handleAvatarSuccess = async (response) => {
+	const handleAvatarSuccess = async (response,file) => {
 	  if (response.code === 200) {
 	    // 更新头像
 	    try {
