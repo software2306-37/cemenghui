@@ -38,13 +38,14 @@ public class MeetingController {
                                             @RequestParam(required = false) String keyword,
                                             @RequestParam(required = false) Integer status,
                                             @RequestParam(required = false) Long creatorId,
+                                            @RequestParam(required = false) String category,
                                             @RequestParam(required = false) String startDate,
                                             @RequestParam(required = false) String endDate) {
         Page<Meeting> page;
         if (startDate != null || endDate != null) {
-            page = meetingService.pageMeetings(current, size, keyword, status, creatorId, startDate, endDate);
+            page = meetingService.pageMeetings(current, size, keyword, status, creatorId, category, startDate, endDate);
         } else {
-            page = meetingService.pageMeetings(current, size, keyword, status, creatorId);
+            page = meetingService.pageMeetings(current, size, keyword, status, creatorId, category);
         }
         return Result.success(page);
     }

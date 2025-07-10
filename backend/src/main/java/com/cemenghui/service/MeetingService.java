@@ -14,12 +14,12 @@ public interface MeetingService extends IService<Meeting> {
     /**
      * 分页查询会议
      */
-    Page<Meeting> pageMeetings(int current, int size, String keyword, Integer status, Long creatorId);
+    Page<Meeting> pageMeetings(int current, int size, String keyword, Integer status, Long creatorId, String category);
     
     /**
      * 分页查询会议（带时间筛选）
      */
-    Page<Meeting> pageMeetings(int current, int size, String keyword, Integer status, Long creatorId, String startDate, String endDate);
+    Page<Meeting> pageMeetings(int current, int size, String keyword, Integer status, Long creatorId, String category, String startDate, String endDate);
     
     /**
      * 获取最新会议列表

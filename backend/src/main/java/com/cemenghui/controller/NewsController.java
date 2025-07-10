@@ -165,6 +165,7 @@ public class NewsController {
      */
     @PutMapping("/{id}")
     public Result<String> updateNews(@PathVariable Long id, @RequestBody News news, HttpSession session) {
+        System.out.println("开始更改动态");
         User currentUser = (User) session.getAttribute("user");
         if (currentUser == null) {
             return Result.error(401, "未登录");

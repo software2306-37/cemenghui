@@ -18,18 +18,18 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
     public Page<Tenant> pageTenants(int current, int size, String keyword) {
         Page<Tenant> page = new Page<>(current, size);
         QueryWrapper<Tenant> queryWrapper = new QueryWrapper<>();
-
+        
         if (StringUtils.hasText(keyword)) {
-            queryWrapper.and(wrapper ->
+            queryWrapper.and(wrapper -> 
                 wrapper.like("tenant_code", keyword)
                     .or().like("tenant_name", keyword)
                     .or().like("contact_person", keyword)
                     .or().like("contact_phone", keyword)
             );
         }
-
+        
         queryWrapper.orderByDesc("create_time");
-
+        
         return this.page(page, queryWrapper);
     }
 
@@ -45,7 +45,7 @@ public class TenantServiceImpl extends ServiceImpl<TenantMapper, Tenant> impleme
         QueryWrapper<Tenant> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("status", 1)
                    .orderBy(true, true, "tenant_name");
-
+        
         return this.list(queryWrapper);
     }
-}
+} 

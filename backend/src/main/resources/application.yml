@@ -54,6 +54,7 @@ file:
     path: /uploads/
     static-path: classpath:/static/uploads/
 
+
 # 日志配置
 logging:
   level:
