@@ -5,23 +5,31 @@
         <div class="card-header">
           <span>动态管理</span>
           <div>
-            <el-button
-                type="warning"
-                @click="batchAudit"
-                :disabled="selectedNews.length === 0"
-                v-if="user.role === 'ADMIN'"
+            <el-button 
+              type="warning" 
+              @click="batchAudit" 
+              :disabled="selectedNews.length === 0" 
+              v-if="user.role === 'ADMIN'"
             >
               批量审核
             </el-button>
-            <el-button
-                type="danger"
-                @click="batchDelete"
-                :disabled="selectedNews.length === 0"
+            <el-button 
+              type="danger" 
+              @click="batchDelete" 
+              :disabled="selectedNews.length === 0"
             >
               批量删除
             </el-button>
             <el-button type="success" @click="exportNews">导出动态</el-button>
             <el-button type="primary" @click="openAddDialog">发布动态</el-button>
+            <el-button 
+              type="info" 
+              @click="batchAiAudit" 
+              :disabled="selectedNews.length === 0" 
+              v-if="user.role === 'ADMIN'"
+            >
+              一键AI审核
+            </el-button>
           </div>
         </div>
       </template>
@@ -30,10 +38,10 @@
         <el-row :gutter="20">
           <el-col :span="8">
             <el-input
-                v-model="searchKeyword"
-                placeholder="请输入标题、作者或简介进行模糊搜索"
-                clearable
-                @keyup.enter="loadNews"
+              v-model="searchKeyword"
+              placeholder="请输入标题、作者或简介进行模糊搜索"
+              clearable
+              @keyup.enter="loadNews"
             >
               <template #append>
                 <el-button @click="loadNews">搜索</el-button>
@@ -65,13 +73,13 @@
           </el-col>
           <el-col :span="6">
             <el-date-picker
-                v-model="createTimeRange"
-                type="daterange"
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                style="width: 100%"
-                @change="loadNews"
+              v-model="createTimeRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              style="width: 100%"
+              @change="loadNews"
             />
           </el-col>
           <el-col :span="2">
@@ -116,32 +124,32 @@
         <el-table-column label="操作" width="220">
           <template #default="scope">
             <el-button size="small" @click="viewNews(scope.row)">查看</el-button>
-            <el-button
-                size="small"
-                @click="editNews(scope.row)"
-                v-if="canEdit(scope.row)"
+            <el-button 
+              size="small" 
+              @click="editNews(scope.row)" 
+              v-if="canEdit(scope.row)"
             >
               编辑
             </el-button>
-            <el-button
-                size="small"
-                type="primary"
-                @click="auditNews(scope.row)"
-                v-if="canAudit(scope.row)"
+            <el-button 
+              size="small" 
+              type="primary" 
+              @click="auditNews(scope.row)" 
+              v-if="canAudit(scope.row)"
             >
               审核
             </el-button>
-            <el-button
-                size="small"
-                type="danger"
-                @click="deleteNews(scope.row)"
-                v-if="canDelete(scope.row)"
+            <el-button 
+              size="small" 
+              type="danger" 
+              @click="deleteNews(scope.row)" 
+              v-if="canDelete(scope.row)"
             >
               删除
             </el-button>
-            <span
-                v-if="!canEdit(scope.row) && !canAudit(scope.row) && !canDelete(scope.row) && scope.row.authorId !== user.id"
-                style="color: #999; font-size: 12px;"
+            <span 
+              v-if="!canEdit(scope.row) && !canAudit(scope.row) && !canDelete(scope.row) && scope.row.authorId !== user.id" 
+              style="color: #999; font-size: 12px;"
             >
               仅查看
             </span>
@@ -151,13 +159,13 @@
 
       <div class="pagination">
         <el-pagination
-            v-model:current-page="currentPage"
-            v-model:page-size="pageSize"
-            :total="total"
-            layout="total, sizes, prev, pager, next"
-            :page-sizes="[10, 20, 50, 100]"
-            @current-change="loadNews"
-            @size-change="handleSizeChange"
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="total"
+          layout="total, sizes, prev, pager, next"
+          :page-sizes="[10, 20, 50, 100]"
+          @current-change="loadNews"
+          @size-change="handleSizeChange"
         />
       </div>
     </el-card>
@@ -184,12 +192,12 @@
         </el-form-item>
         <el-form-item label="封面图片">
           <el-upload
-              class="upload-demo"
-              :action="uploadUrl"
-              :show-file-list="false"
-              :on-success="handleCoverSuccess"
-              :before-upload="beforeImageUpload"
-              accept="image/*"
+            class="upload-demo"
+            :action="uploadUrl"
+            :show-file-list="false"
+            :on-success="handleCoverSuccess"
+            :before-upload="beforeImageUpload"
+            accept="image/*"
           >
             <el-button size="small" type="primary">点击上传封面图片</el-button>
           </el-upload>
@@ -198,44 +206,44 @@
             <el-button size="small" type="danger" @click="newsForm.coverImage = ''" style="margin-left: 10px;">删除</el-button>
           </div>
         </el-form-item>
-
+        
         <el-form-item label="内容图片">
           <el-upload
-              class="upload-demo"
-              :action="uploadUrl"
-              :show-file-list="true"
-              :on-success="handleContentImageSuccess"
-              :before-upload="beforeImageUpload"
-              accept="image/*"
-              multiple
+            class="upload-demo"
+            :action="uploadUrl"
+            :show-file-list="true"
+            :on-success="handleContentImageSuccess"
+            :before-upload="beforeImageUpload"
+            accept="image/*"
+            multiple
           >
             <el-button size="small" type="primary">上传内容图片</el-button>
           </el-upload>
           <div class="upload-tip">支持多张图片上传，可插入到内容中</div>
         </el-form-item>
-
+        
         <el-form-item label="视频文件">
           <el-upload
-              class="upload-demo"
-              :action="uploadUrl"
-              :show-file-list="true"
-              :on-success="handleVideoSuccess"
-              :before-upload="beforeVideoUpload"
-              accept="video/*"
+            class="upload-demo"
+            :action="uploadUrl"
+            :show-file-list="true"
+            :on-success="handleVideoSuccess"
+            :before-upload="beforeVideoUpload"
+            accept="video/*"
           >
             <el-button size="small" type="primary">上传视频</el-button>
           </el-upload>
           <div class="upload-tip">支持mp4、avi、mov等格式，大小不超过50MB</div>
         </el-form-item>
-
+        
         <el-form-item label="附件文件">
           <el-upload
-              class="upload-demo"
-              :action="uploadUrl"
-              :show-file-list="true"
-              :on-success="handleAttachmentSuccess"
-              :before-upload="beforeAttachmentUpload"
-              multiple
+            class="upload-demo"
+            :action="uploadUrl"
+            :show-file-list="true"
+            :on-success="handleAttachmentSuccess"
+            :before-upload="beforeAttachmentUpload"
+            multiple
           >
             <el-button size="small" type="primary">上传附件</el-button>
           </el-upload>
@@ -288,35 +296,35 @@
         <div class="view-item" v-if="viewingNews.contentImages && JSON.parse(viewingNews.contentImages || '[]').length > 0">
           <strong>内容图片：</strong><br/>
           <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            <img
-                v-for="(img, index) in JSON.parse(viewingNews.contentImages)"
-                :key="index"
-                :src="getImageUrl(img)"
-                style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;"
+            <img 
+              v-for="(img, index) in JSON.parse(viewingNews.contentImages)" 
+              :key="index"
+              :src="getImageUrl(img)" 
+              style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;" 
             />
           </div>
         </div>
         <div class="view-item" v-if="viewingNews.videos && JSON.parse(viewingNews.videos || '[]').length > 0">
           <strong>视频文件：</strong><br/>
           <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            <video
-                v-for="(video, index) in JSON.parse(viewingNews.videos)"
-                :key="index"
-                :src="getImageUrl(video)"
-                controls
-                style="width: 200px; height: 150px; border-radius: 4px;"
+            <video 
+              v-for="(video, index) in JSON.parse(viewingNews.videos)" 
+              :key="index"
+              :src="getImageUrl(video)" 
+              controls
+              style="width: 200px; height: 150px; border-radius: 4px;" 
             />
           </div>
         </div>
         <div class="view-item" v-if="viewingNews.attachments && JSON.parse(viewingNews.attachments || '[]').length > 0">
           <strong>附件文件：</strong><br/>
           <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-            <a
-                v-for="(attachment, index) in JSON.parse(viewingNews.attachments)"
-                :key="index"
-                :href="getImageUrl(attachment)"
-                target="_blank"
-                style="display: inline-block; padding: 5px 10px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333;"
+            <a 
+              v-for="(attachment, index) in JSON.parse(viewingNews.attachments)" 
+              :key="index"
+              :href="getImageUrl(attachment)" 
+              target="_blank"
+              style="display: inline-block; padding: 5px 10px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333;"
             >
               📎 附件{{ index + 1 }}
             </a>
@@ -337,6 +345,45 @@
         <el-button @click="showViewDialog = false">关闭</el-button>
       </template>
     </el-dialog>
+
+    <!-- AI审核详情对话框 -->
+    <el-dialog v-model="showAiDialog" title="AI审核详情" width="700px" :modal="false" draggable :close-on-click-modal="false">
+      <div v-if="aiLoading" style="color:#aaa;">正在思考...</div>
+      <div v-else>
+        <div style="white-space:pre-line;word-break:break-all;">
+          <div v-if="aiMainContentArr.length">
+            <div v-for="(item, idx) in aiMainContentArr" :key="item.label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                {{ item.label }}：
+                <template v-if="item.result==='v'">
+                  <span style="color:#67c23a;">通过</span>
+                </template>
+                <template v-else>
+                  <span style="color:#f56c6c;">不通过</span>
+                  <span v-if="item.reason && item.reason!=='无'" style="color:#c00;margin-left:8px;">，理由：{{ item.reason }}</span>
+                </template>
+              </div>
+              <div style="flex-shrink:0;">
+                <el-button size="small" type="primary" @click="acceptAudit(idx)" :disabled="item.accepting || item.accepted">接受审核</el-button>
+                <el-button size="small" @click="viewNews(selectedNews[idx])">查看</el-button>
+              </div>
+            </div>
+          </div>
+          <div v-if="aiThoughtContent">
+            <span class="ai-thought-toggle" @click="aiShowThought = !aiShowThought" style="cursor:pointer;font-size:12px;color:#aaa;margin-left:8px;user-select:none;">
+              [{{ aiShowThought ? '收起思考' : '展开思考' }}]
+            </span>
+            <div v-show="aiShowThought" style="font-size:12px;color:#bbb;background:#f7f7f7;padding:6px 10px;border-radius:4px;margin:4px 0;white-space:pre-line;">
+              {{ aiThoughtContent }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button type="success" @click="acceptAllAudits" :disabled="aiMainContentArr.every(item => item.accepted || item.accepting)">接受全部</el-button>
+        <el-button @click="showAiDialog = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -350,6 +397,7 @@ const loading = ref(false)
 const showAddDialog = ref(false)
 const showAuditDialog = ref(false)
 const showViewDialog = ref(false)
+const showAiDialog = ref(false)
 const editingNews = ref(null)
 const auditingNews = ref(null)
 const viewingNews = ref(null)
@@ -364,6 +412,11 @@ const total = ref(0)
 const auditStatus = ref(1)
 const uploadUrl = ref('/api/file/upload')
 const selectedNews = ref([])
+const aiMainContent = ref('')
+const aiMainContentArr = ref([]) // [{label, result, reason, accepted}]
+const aiThoughtContent = ref('')
+const aiShowThought = ref(false)
+const aiLoading = ref(false)
 
 const user = computed(() => {
   const userStr = localStorage.getItem('user')
@@ -395,35 +448,35 @@ const loadNews = async () => {
       size: pageSize.value,
       keyword: searchKeyword.value
     }
-
+    
     // 添加状态筛选
     if (statusFilter.value !== '') {
       params.status = statusFilter.value
     }
-
+    
     // 添加分类筛选
     if (categoryFilter.value !== '') {
       params.category = categoryFilter.value
     }
-
+    
     // 添加创建时间筛选
     if (createTimeRange.value && createTimeRange.value.length === 2) {
       const startDate = createTimeRange.value[0]
       const endDate = createTimeRange.value[1]
-
+      
       if (startDate instanceof Date) {
         params.startDate = startDate.toISOString().split('T')[0]
       } else {
         params.startDate = startDate
       }
-
+      
       if (endDate instanceof Date) {
         params.endDate = endDate.toISOString().split('T')[0]
       } else {
         params.endDate = endDate
       }
     }
-
+    
     // 添加作者筛选
     if (authorFilter.value === 'mine') {
       params.authorId = user.value.id
@@ -473,14 +526,19 @@ const viewNews = (news) => {
 }
 
 const editNews = (news) => {
-  editingNews.value = news
-  Object.assign(newsForm, {
-    ...news,
-    contentImages: news.contentImages ? JSON.parse(news.contentImages) : [],
-    videos: news.videos ? JSON.parse(news.videos) : [],
-    attachments: news.attachments ? JSON.parse(news.attachments) : []
-  })
-  showAddDialog.value = true
+  editingNews.value = news;
+  
+  // 只设置必要字段，避免后端不需要的字段
+  newsForm.title = news.title;
+  newsForm.summary = news.summary;
+  newsForm.content = news.content;
+  newsForm.category = news.category;
+  newsForm.coverImage = news.coverImage;
+  newsForm.contentImages = news.contentImages ? JSON.parse(news.contentImages) : [];
+  newsForm.videos = news.videos ? JSON.parse(news.videos) : [];
+  newsForm.attachments = news.attachments ? JSON.parse(news.attachments) : [];
+  
+  showAddDialog.value = true;
 }
 // 将日期格式化为 yyyy-MM-dd HH:mm:ss
 const formatDateTime = (date) => {
@@ -494,6 +552,11 @@ const formatDateTime = (date) => {
   const seconds = String(d.getSeconds()).padStart(2, '0');
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
+
+const convertIfDate = (value) => {
+    return value instanceof Date ? formatDateTime(value) : value;
+};
+
 const saveNews = async () => {
   try {
     // 验证必填字段
@@ -527,7 +590,7 @@ const saveNews = async () => {
       videos: JSON.stringify(newsForm.videos),
       attachments: JSON.stringify(newsForm.attachments)
     }
-
+    
     if (editingNews.value) {
       await request.put(`/news/${editingNews.value.id}`, formData)
       ElMessage.success('更新成功')
@@ -566,14 +629,14 @@ const submitAudit = async () => {
 const deleteNews = async (news) => {
   try {
     await ElMessageBox.confirm(
-        `确定要删除动态"${news.title}"吗？删除后不可恢复！`,
-        '确认删除',
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning',
-          confirmButtonClass: 'el-button--danger'
-        }
+      `确定要删除动态"${news.title}"吗？删除后不可恢复！`, 
+      '确认删除', 
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
     )
     await request.delete(`/news/${news.id}`)
     ElMessage.success('删除成功')
@@ -704,24 +767,24 @@ const exportNews = async () => {
     const params = {
       keyword: searchKeyword.value
     }
-
+    
     if (statusFilter.value !== '') {
       params.status = statusFilter.value
     }
-
+    
     if (categoryFilter.value !== '') {
       params.category = categoryFilter.value
     }
-
+    
     if (authorFilter.value === 'mine') {
       params.authorId = user.value.id
     }
-
+    
     const res = await request.get('/news/export', {
       params,
       responseType: 'blob'
     })
-
+    
     const blob = new Blob([res], { type: 'text/csv;charset=utf-8' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -731,7 +794,7 @@ const exportNews = async () => {
     a.click()
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
-
+    
     ElMessage.success('导出成功')
   } catch (error) {
     console.error('导出失败:', error)
@@ -756,7 +819,7 @@ const batchAudit = async () => {
       ElMessage.error('只有管理员可以批量审核')
       return
     }
-
+    
     await ElMessageBox.confirm('确定要批量审核选中的动态吗？', '提示')
     const ids = selectedNews.value.map(news => news.id)
     await request.post('/news/batch/audit', {
@@ -777,24 +840,24 @@ const batchAudit = async () => {
 const batchDelete = async () => {
   try {
     // 检查权限：普通用户只能删除自己的动态
-    const unauthorizedNews = selectedNews.value.filter(news =>
-        user.value.role !== 'ADMIN' && news.authorId !== user.value.id
+    const unauthorizedNews = selectedNews.value.filter(news => 
+      user.value.role !== 'ADMIN' && news.authorId !== user.value.id
     )
-
+    
     if (unauthorizedNews.length > 0) {
       ElMessage.error(`选中的动态中有${unauthorizedNews.length}条不是您创建的，无法删除`)
       return
     }
-
+    
     await ElMessageBox.confirm(
-        `确定要删除选中的${selectedNews.value.length}条动态吗？删除后不可恢复！`,
-        '确认批量删除',
-        {
-          confirmButtonText: '确定删除',
-          cancelButtonText: '取消',
-          type: 'warning',
-          confirmButtonClass: 'el-button--danger'
-        }
+      `确定要删除选中的${selectedNews.value.length}条动态吗？删除后不可恢复！`, 
+      '确认批量删除', 
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
     )
     const ids = selectedNews.value.map(news => news.id)
     await request.delete('/news/batch', {
@@ -808,6 +871,185 @@ const batchDelete = async () => {
       console.error('批量删除失败:', error)
       ElMessage.error('批量删除失败')
     }
+  }
+}
+
+// 新增AI审核相关逻辑
+function parseAiResult(str) {
+  // 兼容中英文分号和有无空格
+  return str.split(/[；;]\s*/).map(s => s.trim()).filter(Boolean).map((item, idx) => {
+    // 动态1:x,理由 或 动态1:v,无
+    const m = item.match(/^(动态\d+):(v|x),(.+)$/)
+    if (m) {
+      return { label: m[1], result: m[2], reason: m[3], accepted: false }
+    } else {
+      // 容错
+      return { label: `动态${idx+1}`, result: 'x', reason: '解析失败', accepted: false }
+    }
+  })
+}
+const batchAiAudit = async () => {
+  if (selectedNews.value.length === 0) {
+    ElMessage.warning('请先选择要审核的动态')
+    return
+  }
+  const auditObj = {}
+  selectedNews.value.forEach((item, idx) => {
+    auditObj[`动态${idx + 1}`] = item.summary || item.content || item.title || ''
+  })
+  const query = JSON.stringify(auditObj)
+  const chatRequest = {
+    query: query,
+    response_mode: 'streaming',
+    user: user.value.username || 'admin'
+  }
+  ElMessage.info('AI审核中，请稍候...')
+  showAiDialog.value = true
+  aiMainContent.value = ''
+  aiMainContentArr.value = []
+  aiThoughtContent.value = ''
+  aiShowThought.value = false
+  aiLoading.value = true
+
+  const response = await fetch('/api/LLM/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(chatRequest)
+  })
+  if (!response.body) {
+    ElMessage.error('AI接口无响应')
+    aiLoading.value = false
+    return
+  }
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder('utf-8')
+  let done = false
+  let buffer = ''
+  let lastStreamId = -1
+  const TempId = ref(-1);
+  let isThinking = false
+  let mainStream = ''
+  let thoughtStream = ''
+  while (!done) {
+    const { value, done: readerDone } = await reader.read()
+    done = readerDone
+    if (value) {
+      buffer += decoder.decode(value, { stream: true })
+      // 匹配所有 {...} 片段
+      const regex = /({.*?})/gs
+      let match
+      while ((match = regex.exec(buffer)) !== null) {
+        let cleanedJson = match[1].replace(/\n\ndata:/, '').trim()
+        try {
+          const obj = JSON.parse(cleanedJson)
+          if (Number(obj.stream_id) <= Number(TempId.value)) continue;
+          TempId.value = obj.stream_id;
+          if (typeof obj.stream_id === 'number' && obj.stream_id <= lastStreamId) continue
+          lastStreamId = obj.stream_id
+          if (typeof obj.answer === 'string') {
+            let answer = obj.answer
+            // 逐行处理流内容，分离思考和正文，流式显示
+            let i = 0
+            while (i < answer.length) {
+              // 检查<think>标签
+              if (answer.startsWith('<think>', i)) {
+                isThinking = true
+                i += 7
+                continue
+              }
+              if (answer.startsWith('</think>', i)) {
+                isThinking = false
+                i += 8
+                continue
+              }
+              // 跳过“正文部分”字样
+              if (answer.startsWith('正文部分', i)) {
+                i += 4
+                continue
+              }
+              // 流式追加
+              if (isThinking) {
+                thoughtStream += answer[i]
+                aiThoughtContent.value = thoughtStream
+              } else {
+                mainStream += answer[i]
+                aiMainContent.value = mainStream
+              }
+              i++
+            }
+          }
+        } catch (e) {
+          // JSON解析失败
+        }
+        break;
+      }
+      // 只保留最后一个未完整匹配的片段
+      const lastDataIdx = buffer.lastIndexOf('data:')
+      if (lastDataIdx !== -1) {
+        buffer = buffer.slice(lastDataIdx)
+      } else {
+        buffer = ''
+      }
+    }
+  }
+  aiLoading.value = false
+  // 处理AI返回内容，适配“动态1:x,理由； 动态2:v,无...”格式
+  let resultStr = aiMainContent.value.trim()
+  if (!resultStr) {
+    ElMessage.error('AI返回内容为空')
+    return
+  }
+  // 过滤掉所有<think>标签和“正文部分”
+  resultStr = resultStr.replace(/<think>/g, '').replace(/<\/think>/g, '').replace(/正文部分/g, '')
+  aiMainContentArr.value = parseAiResult(resultStr)
+}
+// 用户点击“接受审核”按钮
+function acceptAudit(idx) {
+  const item = aiMainContentArr.value[idx]
+  if (item.accepted || item.accepting) return
+  const news = selectedNews.value[idx]
+  if (!news) return
+  item.accepting = true
+  const status = item.result === 'v' ? 1 : 2
+  request.post(`/news/${news.id}/audit`, { status }).then(() => {
+    item.accepted = true
+    item.accepting = false
+    ElMessage.success(`${item.label}审核结果已应用`)
+    loadNews()
+  }).catch(() => {
+    item.accepting = false
+    ElMessage.error(`${item.label}审核应用失败`)
+  })
+}
+
+function acceptAllAudits() {
+  const promises = []
+  aiMainContentArr.value.forEach((item, idx) => {
+    if (!item.accepted && !item.accepting) {
+      item.accepting = true
+      const news = selectedNews.value[idx]
+      if (!news) {
+        item.accepting = false
+        return
+      }
+      const status = item.result === 'v' ? 1 : 2
+      promises.push(
+        request.post(`/news/${news.id}/audit`, { status }).then(() => {
+          item.accepted = true
+          item.accepting = false
+        }).catch(() => {
+          item.accepting = false
+        })
+      )
+    }
+  })
+  if (promises.length > 0) {
+    Promise.all(promises).then(() => {
+      ElMessage.success('全部审核结果已应用')
+      loadNews()
+    }).catch(() => {
+      ElMessage.error('部分审核应用失败')
+    })
   }
 }
 </script>
