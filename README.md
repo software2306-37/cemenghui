@@ -2,6 +2,8 @@
 
 测盟汇系统是一个基于SpringBoot + Vue3 + MySQL + MyBatis Plus的企业级管理系统，包含Web管理端和小程序端。
 
+**github代码：main包含了项目整合后的整体结构，详细的的commit记录在其他分支当中**
+
 ## 技术栈
 
 ### 后端
