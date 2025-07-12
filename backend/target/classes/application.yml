@@ -1,0 +1,69 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  datasource:
+    # 确认驱动类（Kingbase8 驱动）
+    driver-class-name: com.kingbase8.Driver
+    # URL 里指定 schema 为 cemengui（关键！）
+    url: jdbc:kingbase8://localhost:54321/cemenghui_now?currentSchema=cemenghui_now&useUnicode=true
+    username: system
+    password: 123456
+  
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+# MyBatis Plus配置
+mybatis-plus:
+
+  configuration:
+    variables:
+      current_schema: cemenghui_now  # 金仓专用变量
+    map-underscore-to-camel-case: true
+    auto-mapping-behavior: full
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    # 金仓需要配置标识符引号
+    identifier-quote: "\""
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  global-config:
+    db-config:
+      db-type: kingbasees  # 关键：指定金仓方言
+      schema: cemenghui_now  # 全局schema设置
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+#dify配置
+dify:
+  api:
+    url: http://localhost
+    key: app-z9FbLN9w9hcUEewiwiFFqH37
+
+#api配置
+api:
+  base-url: http://localhost
+  auth:
+    token: app-z9FbLN9w9hcUEewiwiFFqH37
+
+
+
+# 文件上传配置
+file:
+  upload:
+    path: /uploads/
+    static-path: classpath:/static/uploads/
+
+# 日志配置
+logging:
+  level:
+    com.cemenghui: debug
+    root: info 
