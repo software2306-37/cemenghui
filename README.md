@@ -146,13 +146,16 @@ chmod +x start.sh
 
 ### 1. 数据库配置
 
-```sql
--- 创建数据库
-CREATE DATABASE cemenghui DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+	项目使用金仓数据库，源代码使用cemenghui_now.sql
 
--- 导入数据
-mysql -u root -p cemenghui < database/cemenghui.sql
-```
+	 环境准备
+		安装金仓数据库：按照金仓数据库的官方文档，在服务器上完成数据库的安装和配置。
+		创建数据库实例：根据项目需求，创建相应的数据库实例，并进行必要的参数调整。
+		
+	 数据迁移
+		数据结构迁移：手动将 MySQL数据库中的表结构、索引、视图等对象在金仓数据库中重新创建。在迁移过程中，需要注意金仓数据库与 MySQL在数据类型、语法等方面的差异。
+		数据导入：使用金仓数据库提供的数据导入工具KingbaseDTS，将MySQL数据库中的数据导出为SQL文件，然后导入到金仓数据库中。
+
 
 ### 2. 后端部署
 
@@ -230,6 +233,39 @@ npm install
 # 编译到微信小程序
 npm run dev:mp-weixin
 ```
+
+## 5. AI部署
+
+	#确保设备有ollama、docker、docker compose环境
+	
+	#部署Dify：下载源码[](https://github.com/langgenius/dify)
+	#进入路径：dify-main\dify-main\docker，打开cmd，运行 docker -compose
+	
+	本地部署大模型：
+		bash< ollama run deepseek-r1:8b
+	访问dify：localhost:/80/install
+	
+	创建智能体，使用ollama，deepseek-r1:8b
+	
+	输入提示词：“
+		请根据以下规则对输入内容中的动态进行违禁词检测：
+		1. 输入的规范是严格的，有以下形式：
+		{动态1：”动态内容1“，动态2：”动态内容2“，动态3：”动态内容3“......}
+		识别并提取输入内容中的每一个动态条目，其格式为“动态n:”开头的内容段落。
+		2. 对于每个动态条目，请检查其内容是否包含任何违禁词汇的含义。如果发现任何与违禁词相关或相近的含义，则将该动态标记为 'x'；否则，将其标记为 'v'。（请注意：Result只能是”v“或”x“，不能是任何其他内容！如果你不确定，请标记为‘v’）
+		3. 输出结果必须严格按照指定格式：动态1:Result1,Reason1; 动态2:Result2,Reason2; 
+		4.请将理由精简到10个字以内，如果判定为通过则不需要任何理由，理由直接为”无“
+		5. 严格确保输出中不包含任何 XML 标签或其他无关信息，输出格式的分隔符必须严格按照规范（动态1:Result,Reason; 动态2:Result,Reason; ）
+		6.注意！注意！注意！千万不要有任何其他符号（包括换行符）！
+		输入示例：
+		{动态1:"这是测试内容", 动态2:"这个内容包含敏感词汇"}
+		输出示例（基于上述规则）：
+		动态1:v,无; 动态2:x,理由; 
+	”
+	
+	点击发布-发布大模型
+	点击发布-访问api：复制API-key，并粘贴到后端application.yml的dify配置下的“api-key：”后面
+
 
 ## 🔧 系统配置
 
